@@ -13,20 +13,22 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-  html,body{margin:0;height:100%;background:#fff;overflow:hidden}
-  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;padding-top:env(safe-area-inset-top);box-sizing:border-box}
+  html,body{margin:0;height:100%;width:100%;background:#fff;overflow:hidden}
+  #wrap{position:fixed;top:env(safe-area-inset-top);left:env(safe-area-inset-left);right:env(safe-area-inset-right);bottom:0;overflow:auto;-webkit-overflow-scrolling:touch}
+  /* iPhone: width 1px + min-width 100% impede o iframe de ficar mais largo que a tela */
+  iframe{display:block;width:1px;min-width:100%;height:100%;border:0}
   #falha{display:none;font-family:system-ui,sans-serif;padding:24px;text-align:center;color:#854300}
   #falha a{color:#D35400;font-weight:bold}
 </style>
 </head>
 <body>
-<iframe id="app" src="https://script.google.com/macros/s/AKfycbwq_W0SlcA5pQfsQrvp2j8MZ4l3Wmp1sJcsYEWIkBBQWhmbFJfnP7sJswKrrApDB83xoQ/exec"
-        allow="clipboard-write; fullscreen" title="Savita • Gestão de Vendas"></iframe>
+<div id="wrap"><iframe id="app" src="https://script.google.com/macros/s/AKfycbwq_W0SlcA5pQfsQrvp2j8MZ4l3Wmp1sJcsYEWIkBBQWhmbFJfnP7sJswKrrApDB83xoQ/exec"
+        allow="clipboard-write; fullscreen" title="Savita • Gestão de Vendas"></iframe></div>
 <div id="falha">Não foi possível abrir o app aqui.<br><br>
   <a href="https://script.google.com/macros/s/AKfycbwq_W0SlcA5pQfsQrvp2j8MZ4l3Wmp1sJcsYEWIkBBQWhmbFJfnP7sJswKrrApDB83xoQ/exec">Abrir no navegador</a></div>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
-  if (!navigator.onLine) { document.getElementById('app').style.display='none'; document.getElementById('falha').style.display='block'; }
+  if (!navigator.onLine) { document.getElementById('wrap').style.display='none'; document.getElementById('falha').style.display='block'; }
 </script>
 </body>
 </html>
