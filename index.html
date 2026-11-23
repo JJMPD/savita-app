@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 <style>
   html,body{margin:0;height:100%;width:100%;background:#fff;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   #wrap{position:fixed;top:env(safe-area-inset-top);left:env(safe-area-inset-left);right:env(safe-area-inset-right);bottom:0;overflow:auto;-webkit-overflow-scrolling:touch}
@@ -20,20 +20,19 @@
   iframe{display:block;width:1px;min-width:100%;height:100%;border:0}
   #falha{display:none;padding:24px;text-align:center;color:#854300}
   #falha a{color:#D35400;font-weight:bold}
-  #btnScan{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;
+  #btnQR{position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;
     background:#D35400;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:5;display:flex;align-items:center;justify-content:center}
-  #scan{position:fixed;inset:0;background:#000;z-index:10;display:none;flex-direction:column}
-  #scan.on{display:flex}
-  #scan video{flex:1;width:100%;object-fit:cover;min-height:0}
-  #mira{position:absolute;left:50%;top:40%;width:62vw;height:62vw;max-width:300px;max-height:300px;transform:translate(-50%,-50%);
-    border:3px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.35);transition:border-color .15s}
-  #mira.ok{border-color:#2ecc71}#mira.erro{border-color:#e74c3c}
-  #painel{background:#fff;padding:14px 16px calc(14px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}
-  #msg{font-weight:700;color:#854300;min-height:22px}
-  #resumo{color:#68736d;font-size:14px;margin:4px 0 10px}
-  #ultimos{font-size:14px;color:#1b1f1d;max-height:84px;overflow:auto;margin-bottom:10px}
-  .bt{width:100%;border:0;border-radius:10px;padding:13px;font-size:16px;font-weight:700;background:#D35400;color:#fff}
-  #topo{position:absolute;top:calc(10px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#fff;font-weight:600;text-shadow:0 1px 3px #000}
+  #leitor{position:fixed;inset:0;background:#000;z-index:10;display:none;flex-direction:column}
+  #leitor.on{display:flex}
+  #leitor video{flex:1;width:100%;object-fit:cover;min-height:0}
+  #mira{position:absolute;left:50%;top:42%;width:62vw;max-width:300px;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+  #mira.ok{border-color:#3ddc84}
+  #barra{background:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
+  #barra div{flex:1;min-width:0}
+  #msg{font-weight:700;color:#854300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #sub{font-size:13px;color:#68736d}
+  #fechar{border:0;border-radius:10px;padding:12px 18px;background:#D35400;color:#fff;font-weight:700;font-size:15px}
+  #topo{position:absolute;top:calc(12px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#fff;font-size:15px;text-shadow:0 1px 3px #000}
 </style>
 </head>
 <body>
@@ -42,83 +41,60 @@
 <div id="falha">Não foi possível abrir o app aqui.<br><br>
   <a href="https://script.google.com/macros/s/AKfycbwq_W0SlcA5pQfsQrvp2j8MZ4l3Wmp1sJcsYEWIkBBQWhmbFJfnP7sJswKrrApDB83xoQ/exec">Abrir no navegador</a></div>
 
-<button id="btnScan" aria-label="Escanear QR Code dos produtos">
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 12h10"/></svg>
+<button id="btnQR" aria-label="Ler QR Code">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3"/><rect x="7" y="7" width="4" height="4"/><rect x="13" y="13" width="4" height="4"/><path d="M13 7h4v2M7 15v2h2"/></svg>
 </button>
 
-<div id="scan">
+<div id="leitor">
+  <div id="topo">Aponte para o QR Code do produto</div>
   <video id="video" playsinline muted></video>
   <div id="mira"></div>
-  <div id="topo">Aponte para o QR Code do produto</div>
-  <div id="painel">
-    <div id="msg">Leitor pronto</div>
-    <div id="resumo">Cada leitura adiciona 1 unidade ao pedido.</div>
-    <div id="ultimos"></div>
-    <button class="bt" id="fechar">Concluir</button>
-  </div>
+  <div id="barra"><div><div id="msg">Pronto para ler</div><div id="sub">Cada leitura soma 1 unidade ao pedido</div></div><button id="fechar">Concluir</button></div>
 </div>
+<canvas id="cv" style="display:none"></canvas>
 
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
   if (!navigator.onLine) { document.getElementById('wrap').style.display='none'; document.getElementById('falha').style.display='block'; }
 
-  var app = document.getElementById('app'), scan = document.getElementById('scan'), video = document.getElementById('video'),
-      mira = document.getElementById('mira'), msg = document.getElementById('msg'), resumo = document.getElementById('resumo'),
-      ultimos = document.getElementById('ultimos'), stream = null, rodando = false, ultimoCod = '', ultimoT = 0,
-      canvas = document.createElement('canvas'), ctx = canvas.getContext('2d', { willReadFrequently: true });
+  var leitor=document.getElementById('leitor'), video=document.getElementById('video'), mira=document.getElementById('mira'),
+      msg=document.getElementById('msg'), sub=document.getElementById('sub'), cv=document.getElementById('cv'), ctx=cv.getContext('2d',{willReadFrequently:true});
+  var stream=null, rodando=false, ultimo='', ultimoT=0, detector=null;
+  try { if ('BarcodeDetector' in window) detector = new BarcodeDetector({formats:['qr_code']}); } catch(e){}
 
-  // Envia o produto lido para o app (que fica dentro de quadros do Google)
-  function enviar(id) {
-    (function desce(w, n) {
-      try { w.postMessage({ savitaScan: id }, '*'); } catch (e) {}
-      if (n < 5) { try { for (var i = 0; i < w.frames.length; i++) desce(w.frames[i], n + 1); } catch (e) {} }
-    })(app.contentWindow, 0);
-  }
-  var avisado = 0;
-  window.addEventListener('message', function (e) {
-    var a = e.data && e.data.savitaAck; if (!a || Date.now() - avisado < 300) return; avisado = Date.now();
-    if (a.ok) {
-      sinal(true); msg.textContent = '✓ ' + a.nome + ' (' + a.qtd + ' no pedido)';
-      resumo.textContent = a.itens + ' item(ns) • ' + a.total;
-      ultimos.insertAdjacentHTML('afterbegin', '<div>+1 ' + a.nome.replace(/</g, '&lt;') + '</div>');
-    } else { sinal(false); msg.textContent = a.msg; }
+  // envia a leitura para o app (que fica em frames internos do Google)
+  function enviar(id){ (function todos(w){ for (var i=0;i<w.frames.length;i++){ try{ w.frames[i].postMessage({tipo:'qr',id:id},'*'); todos(w.frames[i]); }catch(e){} } })(window); }
+  window.addEventListener('message', function(e){
+    var d=e.data||{}; if (d.tipo!=='qr-ok') return;
+    if (d.ok){ msg.textContent='✓ '+d.nome; sub.textContent='Pedido: '+d.itens+' item(ns) • '+d.total; mira.classList.add('ok'); setTimeout(function(){mira.classList.remove('ok')},500);
+      try{ navigator.vibrate && navigator.vibrate(80);}catch(e){} bip(); }
+    else { msg.textContent='✗ '+(d.motivo||'Não adicionado'); }
   });
+  var audio=null; function bip(){ try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); var o=audio.createOscillator(),g=audio.createGain(); o.frequency.value=1200; g.gain.value=.08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime+.08);}catch(e){} }
 
-  function idDoCodigo(txt) {
-    var m = /[?&]p=([^&#]+)/.exec(txt); if (m) return decodeURIComponent(m[1]);
-    return /^[a-z0-9-]{3,60}$/i.test(txt) ? txt : '';
+  function lido(texto){
+    var id=''; try{ id=new URL(texto).searchParams.get('p')||''; }catch(e){}
+    if (!id){ msg.textContent='QR Code não é de produto Savita'; return; }
+    var agora=Date.now(); if (id===ultimo && agora-ultimoT<1500) return;   // evita contar a mesma leitura 2 vezes
+    ultimo=id; ultimoT=agora; msg.textContent='Adicionando…'; enviar(id);
   }
-  function sinal(ok) {
-    mira.className = ok ? 'ok' : 'erro'; setTimeout(function () { mira.className = ''; }, 500);
-    try { navigator.vibrate && navigator.vibrate(ok ? 60 : [40, 60, 40]); } catch (e) {}
-    try { var ac = new (window.AudioContext || window.webkitAudioContext)(), o = ac.createOscillator(), g = ac.createGain();
-      o.frequency.value = ok ? 880 : 300; g.gain.value = .08; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + .12); } catch (e) {}
-  }
-
-  function loop() {
+  function quadro(){
     if (!rodando) return;
-    if (video.readyState >= 2 && window.jsQR) {
-      var w = 480, h = Math.round(video.videoHeight * w / video.videoWidth) || 360;
-      canvas.width = w; canvas.height = h; ctx.drawImage(video, 0, 0, w, h);
-      var r = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
-      if (r && r.data) {
-        var id = idDoCodigo(r.data), agora = Date.now();
-        if (!id) { if (agora - ultimoT > 1500) { sinal(false); msg.textContent = 'Este QR não é de um produto Savita'; ultimoT = agora; } }
-        else if (id !== ultimoCod || agora - ultimoT > 1800) { ultimoCod = id; ultimoT = agora; msg.textContent = 'Lendo…'; enviar(id); }
-      }
+    if (video.readyState>=2){
+      if (detector){ detector.detect(video).then(function(r){ if(r.length) lido(r[0].rawValue); }).catch(function(){}).then(function(){ setTimeout(quadro,120); }); return; }
+      if (window.jsQR){ var w=480, h=Math.round(video.videoHeight*w/video.videoWidth)||480; cv.width=w; cv.height=h; ctx.drawImage(video,0,0,w,h);
+        var c=jsQR(ctx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'}); if (c&&c.data) lido(c.data); }
     }
-    requestAnimationFrame(loop);
+    setTimeout(quadro,120);
   }
-
-  document.getElementById('btnScan').onclick = function () {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { alert('Este aparelho não permite usar a câmera aqui.'); return; }
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }).then(function (s) {
-      stream = s; video.srcObject = s; video.play(); scan.classList.add('on'); rodando = true;
-      msg.textContent = 'Leitor pronto'; ultimos.innerHTML = ''; ultimoCod = ''; requestAnimationFrame(loop);
-    }).catch(function () { alert('Permita o uso da câmera para escanear os produtos.'); });
+  document.getElementById('btnQR').onclick=function(){
+    leitor.classList.add('on'); msg.textContent='Abrindo câmera…'; bip();
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(s){
+      stream=s; video.srcObject=s; video.play(); rodando=true; msg.textContent='Pronto para ler'; quadro();
+    }).catch(function(){ msg.textContent='Permita o uso da câmera para ler QR Codes'; });
   };
-  document.getElementById('fechar').onclick = function () {
-    rodando = false; scan.classList.remove('on'); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null;
+  document.getElementById('fechar').onclick=function(){
+    rodando=false; leitor.classList.remove('on'); if (stream){ stream.getTracks().forEach(function(t){t.stop()}); stream=null; }
   };
 </script>
 </body>
