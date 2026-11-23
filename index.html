@@ -117,11 +117,13 @@
   if (!SR) btnVoz.style.display='none';
   btnVoz.onclick=function(){
     if (ouvindo){ try{rec.stop()}catch(e){} return; }
-    rec=new SR(); rec.lang='pt-BR'; rec.interimResults=true; rec.maxAlternatives=1; var final='';
-    rec.onstart=function(){ ouvindo=true; btnVoz.classList.add('ouvindo'); mostrar('<b>Ouvindo…</b><br>Ex.: "1 hyalux de frutas vermelhas e 2 savita leve"'); };
-    rec.onresult=function(e){ var t=''; for (var i=0;i<e.results.length;i++){ t+=e.results[i][0].transcript; if(e.results[i].isFinal) final=t; } mostrar('<b>Ouvindo…</b><br>"'+esc(t)+'"'); };
+    rec=new SR(); rec.lang='pt-BR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1; var final='', tSil=null;
+    function silencio(){ clearTimeout(tSil); tSil=setTimeout(function(){ try{rec.stop()}catch(x){} }, 3500); }
+    rec.onstart=function(){ ouvindo=true; btnVoz.classList.add('ouvindo'); silencio(); mostrar('<b>Ouvindo… fale todos os produtos</b><br>Ex.: "2 savita leve, 1 hyalux frutas vermelhas, 1 forza max"<br><small>Toque no microfone para concluir</small>'); };
+    rec.onresult=function(e){ var fin=[], tmp=''; for (var i=0;i<e.results.length;i++){ if(e.results[i].isFinal) fin.push(e.results[i][0].transcript.trim()); else tmp+=e.results[i][0].transcript; }
+      final=fin.join(', '); silencio(); mostrar('<b>Ouvindo…</b><br>"'+esc(final+(tmp?(final?', ':'')+tmp:''))+'"<br><small>Toque no microfone para concluir</small>'); };
     rec.onerror=function(e){ mostrar('<span class="err">'+(e.error==='not-allowed'?'Permita o uso do microfone para usar a voz.':'Não entendi. Toque no microfone e fale de novo.')+'</span>',4000); };
-    rec.onend=function(){ ouvindo=false; btnVoz.classList.remove('ouvindo'); if(final){ mostrar('<b>Adicionando…</b><br>"'+esc(final)+'"'); var m={tipo:'voz',texto:final};
+    rec.onend=function(){ clearTimeout(tSil); ouvindo=false; btnVoz.classList.remove('ouvindo'); if(final){ mostrar('<b>Adicionando…</b><br>"'+esc(final)+'"'); var m={tipo:'voz',texto:final};
       (function todos(w){ for (var i=0;i<w.frames.length;i++){ try{ w.frames[i].postMessage(m,'*'); todos(w.frames[i]); }catch(x){} } })(window); } };
     try{ rec.start(); }catch(e){ mostrar('<span class="err">Não foi possível usar o microfone.</span>',4000); }
   };
