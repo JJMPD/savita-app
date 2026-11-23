@@ -54,6 +54,10 @@
 <canvas id="cv" style="display:none"></canvas>
 
 <script>
+  // QR Code lido pela câmera do celular: abre o app já adicionando o produto (e com o botão de leitor disponível)
+  (function(){ var p=new URLSearchParams(location.search).get('p'); if(!p) return;
+    var f=document.getElementById('app'); f.src=f.src.split('?')[0]+'?p='+encodeURIComponent(p);
+    try{ history.replaceState(null,'',location.pathname); }catch(e){} })();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
   if (!navigator.onLine) { document.getElementById('wrap').style.display='none'; document.getElementById('falha').style.display='block'; }
 
