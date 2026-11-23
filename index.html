@@ -58,6 +58,14 @@
   (function(){ var p=new URLSearchParams(location.search).get('p'); if(!p) return;
     var f=document.getElementById('app'); f.src=f.src.split('?')[0]+'?p='+encodeURIComponent(p);
     try{ history.replaceState(null,'',location.pathname); }catch(e){} })();
+  // Guarda os dados do app (login salvo, aparelho, pedido em aberto) aqui na moldura, que o celular não apaga
+  window.addEventListener('message', function(e){
+    var d=e.data||{}; if (!/\.googleusercontent\.com$/.test(new URL(e.origin).hostname)) return;
+    if (d.tipo==='ls-set' && /^sv_/.test(d.k)) { try{ if (d.v===null) localStorage.removeItem(d.k); else localStorage.setItem(d.k, JSON.stringify(d.v)); }catch(x){} }
+    if (d.tipo==='ls-get') { var o={}; try{ for (var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if (/^sv_/.test(k)) o[k]=JSON.parse(localStorage.getItem(k)); } }catch(x){}
+      try{ e.source.postMessage({tipo:'ls-all',dados:o}, e.origin); }catch(x){} }
+  });
+  try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
   if (!navigator.onLine) { document.getElementById('wrap').style.display='none'; document.getElementById('falha').style.display='block'; }
 
